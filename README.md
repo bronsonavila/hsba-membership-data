@@ -2,7 +2,7 @@
 
 A Node application for processing data from the Hawaii State Bar Association's [Membership Directory](https://hsba.org/HSBA/Membership_Directory.aspx).
 
-The membership data in this repository is current as of July 10, 2020.
+The [membership data](https://raw.githubusercontent.com/bronsonavila/hsba-directory/master/data/members-full.json) in this repository is current as of July 10, 2020.
 
 ## Installation
 
