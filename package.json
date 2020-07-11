@@ -4,14 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "get_law_school_count": "node -e 'require(\"./index.js\").getLawSchoolCount()'",
+    "get_law_school_count_alphabetical": "node -e 'require(\"./index.js\").getLawSchoolCountAlphabetical()'",
+    "write_full_members": "node -e 'require(\"./index.js\").writeFullMemberResultsToJson()'"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "axios": "^0.19.2",
     "cheerio": "^1.0.0-rc.3",
-    "d3": "^5.16.0"
+    "d3": "^5.16.0",
+    "d3-array": "^2.4.0"
   }
 }

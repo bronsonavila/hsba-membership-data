@@ -1,7 +1,14 @@
 /**
- * Copy, paste, and run in the browser's console to save member data to an array.
+ * Copy Limited HSBA "Membership Directory Results" as JSON
+ *
+ * 1. Go to https://hsba.org/HSBA/Membership_Directory.aspx.
+ * 2. Enter your desired search criteria (there's a trick to fetch up to 10K results).
+ * 3. Paste and run this function in the browser's console to save results to an array.
+ * 4. Save results to `data/members-limited.json`.
+ *
+ * The JSON output will be used to fetch full member directory results via the `id`.
  */
-function copyMembers() {
+function copyLimitedDirectoryResultsAsJson() {
   var tableBody = document.querySelectorAll('.rgMasterTable tbody')[2];
   var rows = [...tableBody.querySelectorAll('tr')];
   var members = rows.map((row) => {
@@ -14,5 +21,6 @@ function copyMembers() {
     };
   });
 
-  copy(members);
+  console.dir(members);
+  copy(JSON.stringify(members));
 }
