@@ -1,4 +1,4 @@
-// `d3-array` v2 includes `group` (not included in `d3` v5).
+// `d3-array` v2 includes `group()` (not included in `d3` v5).
 const d3 = Object.assign({}, require('d3'), require('d3-array'));
 const fs = require('fs');
 
@@ -85,10 +85,18 @@ module.exports.writeFullMemberResultsToJson = async () => {
       const fieldsArr = [];
 
       for (let i = 0; i < fields.length; i++) {
-        fieldsArr.push($(fields[i]).find('span').text());
+        let fieldValue = $(fields[i]).find('span');
+        // Replace any `<br>` tags in the `address` HTML with newline characters.
+        // Otherwise, just use the standard `text()` value for all other fields.
+        if (i === 5) {
+          fieldsArr.push(fieldValue.html().replace(/<br\s*[\/]?>/gi, '\n'));
+        } else {
+          fieldsArr.push(fieldValue.text());
+        }
       }
 
-      // Omit indices `6`, `7`, and `10` (`phone`, `fax`, and `graduated`).
+      // Indices `6` and `7` (`phone` and `fax`) are omitted for privacy purposes.
+      // Index `10` (`graduated`) is omitted due to lack of consistent usage.
       const fieldsObj = {
         id: member.id,
         name: fieldsArr[0],
@@ -96,7 +104,8 @@ module.exports.writeFullMemberResultsToJson = async () => {
         license_type: fieldsArr[2],
         status: fieldsArr[3],
         employer: fieldsArr[4],
-        address: fieldsArr[5],
+        // Some addresses contain only a comma. Such values are replaced with empty strings.
+        address: fieldsArr[5].trim() === ',' ? '' : fieldsArr[5],
         email: fieldsArr[8] ? sanitizeEmail(fieldsArr[8]) : '',
         law_school: fieldsArr[9],
         admitted_hi_bar: fieldsArr[11],
