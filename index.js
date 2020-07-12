@@ -60,7 +60,7 @@ module.exports.getLawSchoolCountAlphabetical = () => {
 module.exports.writeFullMemberResultsToJson = async () => {
   const axios = require('axios');
   const cheerio = require('cheerio');
-  const { asyncForEach, sleep } = require('./src/js/utils');
+  const { asyncForEach, sanitizeEmail, sleep } = require('./src/js/utils');
 
   const membersFull = `data/members-full.json`;
   const membersLimited = JSON.parse(fs.readFileSync('./data/members-limited.json'));
@@ -88,6 +88,7 @@ module.exports.writeFullMemberResultsToJson = async () => {
         fieldsArr.push($(fields[i]).find('span').text());
       }
 
+      // Omit indices `6`, `7`, and `10` (`phone`, `fax`, and `graduated`).
       const fieldsObj = {
         id: member.id,
         name: fieldsArr[0],
@@ -96,11 +97,8 @@ module.exports.writeFullMemberResultsToJson = async () => {
         status: fieldsArr[3],
         employer: fieldsArr[4],
         address: fieldsArr[5],
-        phone: fieldsArr[6],
-        fax: fieldsArr[7],
-        email: fieldsArr[8],
+        email: fieldsArr[8] ? sanitizeEmail(fieldsArr[8]) : '',
         law_school: fieldsArr[9],
-        graduated: fieldsArr[10],
         admitted_hi_bar: fieldsArr[11],
       };
 
