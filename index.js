@@ -104,7 +104,7 @@ module.exports.writeFullMemberResultsToJson = async () => {
         license_type: fieldsArr[2],
         status: fieldsArr[3],
         employer: fieldsArr[4],
-        // Some addresses contain only a comma. Such values are replaced with empty strings.
+        // Some addresses contain only a comma. Replace such values with empty strings.
         address: fieldsArr[5].trim() === ',' ? '' : fieldsArr[5],
         email: fieldsArr[8] ? sanitizeEmail(fieldsArr[8]) : '',
         law_school: fieldsArr[9],
