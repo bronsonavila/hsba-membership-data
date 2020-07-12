@@ -1,15 +1,15 @@
 {
-  "name": "hsba-directory",
+  "name": "hsba-membership-data",
   "version": "1.0.0",
-  "description": "",
+  "description": "A Node application for processing data from the Hawaii State Bar Association's `Membership Directory`.",
   "main": "index.js",
   "scripts": {
     "get_law_school_count": "node -e 'require(\"./index.js\").getLawSchoolCount()'",
     "get_law_school_count_alphabetical": "node -e 'require(\"./index.js\").getLawSchoolCountAlphabetical()'",
     "write_full_members": "node -e 'require(\"./index.js\").writeFullMemberResultsToJson()'"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Bronson Avila",
+  "license": "MIT",
   "dependencies": {
     "axios": "^0.19.2",
     "cheerio": "^1.0.0-rc.3",
