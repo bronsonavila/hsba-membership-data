@@ -4,7 +4,7 @@ A Node application for processing membership data from the Hawaii State Bar Asso
 
 The [full membership data](https://raw.githubusercontent.com/bronsonavila/hsba-directory/master/data/members-full.json) in this repository is current as of July 10, 2020.
 
-- **WARNING**: The file size is large (4.5MB) and may take a minute (or more) for loading to complete.
+- **WARNING**: The file size is large (4.3MB) and may take a minute (or more) for loading to complete.
 
 ## Installation
 

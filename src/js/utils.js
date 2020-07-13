@@ -4,11 +4,6 @@ exports.asyncForEach = async (array, callback) => {
   }
 };
 
-exports.sanitizeEmail = (email) => {
-  const splitEmail = email.split('@');
-  return `${Array(splitEmail[0].length).join('*')}@${splitEmail[1]}`;
-};
-
-exports.sleep = (ms) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+exports.sleep = ms => {
+  return new Promise(resolve => setTimeout(resolve, ms));
 };

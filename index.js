@@ -1,54 +1,38 @@
-// `d3-array` v2 includes `group()` (not included in `d3` v5).
+// `d3-array` v2 includes additional methods not present in `d3` v5.
 const d3 = Object.assign({}, require('d3'), require('d3-array'));
 const fs = require('fs');
+const util = require('util');
+
+util.inspect.defaultOptions.maxArrayLength = null; // Do not truncate arrays in console.
 
 /**
- * Group Members by Law School (Count)
+ * Get Group
  *
- * Returns an array of objects with the `law_school` name as the key, and the
- * number of related members as the value.
- */
-const groupByLawSchoolCount = (members) =>
-  [...d3.group(members, (d) => d.law_school)].map((group) => ({
-    [group[0]]: group[1].length,
-  }));
-
-/**
- * Get Law School Count
+ * Returns a 2D array where each sub-array's first index is the field name,
+ * and the second index is the number of times the field appears in the data.
  *
- * Example:
- * { 'William S. Richardson': 2993 },
- * { '': 748 },
- * { 'Hastings College of Law': 484 },
- * ...
+ * Example: [ ['foo': 123], ['bar': 246], ['baz': 369] ]
+ *
+ * @param {string} fieldName - The field to be used in grouping the data.
+ * @param {string} sortMethod - Sort results either by `alpha` or `count`.
+ * @return {array}
  */
-module.exports.getLawSchoolCount = () => {
+module.exports.getGroup = (fieldName, sortMethod = 'alpha') => {
   const members = JSON.parse(fs.readFileSync('./data/members-full.json'));
-  const lawSchoolCount = [...groupByLawSchoolCount(members)].sort((a, b) =>
-    d3.descending(Object.values(a)[0], Object.values(b)[0])
-  );
+  const group = d3
+    .rollups(
+      members,
+      v => v.length,
+      d => d[fieldName]
+    )
+    .sort((a, b) => {
+      return sortMethod === 'alpha'
+        ? d3.ascending(a[0].toString().toLowerCase(), b[0].toString().toLowerCase())
+        : d3.descending(a[1], b[1]); // `count` is sorted from high to low.
+    });
 
-  console.dir(lawSchoolCount, { maxArrayLength: null });
-  return lawSchoolCount;
-};
-
-/**
- * Get Law School Count (Alphabetical)
- *
- * Example:
- * { '': 748 },
- * { 'Albany Law School': 10 },
- * { 'American U.': 42 },
- * ...
- */
-module.exports.getLawSchoolCountAlphabetical = () => {
-  const members = JSON.parse(fs.readFileSync('./data/members-full.json'));
-  const lawSchoolCountAlphabetical = [...groupByLawSchoolCount(members)].sort((a, b) =>
-    d3.ascending(Object.getOwnPropertyNames(a)[0], Object.getOwnPropertyNames(b)[0])
-  );
-
-  console.dir(lawSchoolCountAlphabetical, { maxArrayLength: null });
-  return lawSchoolCountAlphabetical;
+  console.log(group);
+  return group;
 };
 
 /**
@@ -60,7 +44,7 @@ module.exports.getLawSchoolCountAlphabetical = () => {
 module.exports.writeFullMemberResultsToJson = async () => {
   const axios = require('axios');
   const cheerio = require('cheerio');
-  const { asyncForEach, sanitizeEmail, sleep } = require('./src/js/utils');
+  const { asyncForEach, sleep } = require('./src/js/utils');
 
   const membersFull = `data/members-full.json`;
   const membersLimited = JSON.parse(fs.readFileSync('./data/members-limited.json'));
@@ -79,36 +63,45 @@ module.exports.writeFullMemberResultsToJson = async () => {
   stream.write('[\n');
 
   await asyncForEach(membersLimited, async (member, index) => {
-    await axios.get(`${url}${member.id}`).then((response) => {
+    await axios.get(`${url}${member.id}`).then(response => {
       const $ = cheerio.load(response.data);
       const fields = $('html').find('.PanelFieldValue');
       const fieldsArr = [];
 
       for (let i = 0; i < fields.length; i++) {
         let fieldValue = $(fields[i]).find('span');
-        // Replace any `<br>` tags in the `address` HTML with newline characters.
+        // Apply special formatting to the `address` field's HTML at index 5.
         // Otherwise, just use the standard `text()` value for all other fields.
         if (i === 5) {
-          fieldsArr.push(fieldValue.html().replace(/<br\s*[\/]?>/gi, '\n'));
+          fieldsArr.push(
+            fieldValue
+              .html()
+              .replace(/<br\s*[\/]?>/gi, '\n') // Replace `<br>` with newline.
+              .replace(/\n\s*\n/g, '\n') // Remove duplicate newline characters.
+              .replace(/  +/g, ' ') // Replace double spaces with a single space.
+          );
         } else {
           fieldsArr.push(fieldValue.text());
         }
       }
 
       // Indices `6` and `7` (`phone` and `fax`) are omitted for privacy purposes.
-      // Index `10` (`graduated`) is omitted due to lack of consistent usage.
+      // Index `10` (`graduated`) is omitted due to inconsistent usage by the HSBA.
       const fieldsObj = {
         id: member.id,
-        name: fieldsArr[0],
-        jd_number: fieldsArr[1],
-        license_type: fieldsArr[2],
-        status: fieldsArr[3],
-        employer: fieldsArr[4],
+        name: fieldsArr[0].trim(),
+        jd_number: Number(fieldsArr[1]),
+        license_type: fieldsArr[2].trim(),
+        status: fieldsArr[3].trim(),
+        employer: fieldsArr[4].trim(),
         // Some addresses contain only a comma. Replace such values with empty strings.
-        address: fieldsArr[5].trim() === ',' ? '' : fieldsArr[5],
-        email: fieldsArr[8] ? sanitizeEmail(fieldsArr[8]) : '',
-        law_school: fieldsArr[9],
-        admitted_hi_bar: fieldsArr[11],
+        address: fieldsArr[5].trim() === ',' ? '' : fieldsArr[5].trim(),
+        // Save only the domain name from the `email` field.
+        email: fieldsArr[8].split('@')[1]
+          ? `@${fieldsArr[8].split('@')[1].trim().toLowerCase()}`
+          : '',
+        law_school: fieldsArr[9].trim(),
+        admitted_hi_bar: fieldsArr[11] ? new Date(fieldsArr[11]).getFullYear() : '',
       };
 
       // Write member fields (with a comma appended to all but the last object).
@@ -116,7 +109,12 @@ module.exports.writeFullMemberResultsToJson = async () => {
         `${JSON.stringify(fieldsObj)}${index !== membersLimited.length - 1 ? ',' : ''}\n`
       );
 
-      console.log(index, fieldsArr[1], member.id, fieldsArr[0]);
+      // Log percentage complete.
+      console.log(
+        index,
+        member.id,
+        `...${parseFloat(((index + 1) / membersLimited.length) * 100).toFixed(3)}%`
+      );
     });
 
     await sleep(5000);
