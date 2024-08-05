@@ -1,29 +1,27 @@
 {
   "name": "hsba-membership-data",
   "version": "1.0.0",
-  "description": "A Node application for processing data from the Hawaii State Bar Association's `Membership Directory`.",
-  "main": "index.js",
+  "description": "A TypeScript application for processing data from the Hawaii State Bar Association's `Membership Directory`.",
+  "main": "dist/index.js",
   "scripts": {
-    "get_admitted_hi_bar_alphabetical": "node -e 'require(\"./index.js\").getGroup(\"admitted_hi_bar\")'",
-    "get_admitted_hi_bar_count": "node -e 'require(\"./index.js\").getGroup(\"admitted_hi_bar\", \"count\")'",
-    "get_email_alphabetical": "node -e 'require(\"./index.js\").getGroup(\"email\")'",
-    "get_email_count": "node -e 'require(\"./index.js\").getGroup(\"email\", \"count\")'",
-    "get_employer_alphabetical": "node -e 'require(\"./index.js\").getGroup(\"employer\")'",
-    "get_employer_count": "node -e 'require(\"./index.js\").getGroup(\"employer\", \"count\")'",
-    "get_law_school_alphabetical": "node -e 'require(\"./index.js\").getGroup(\"law_school\")'",
-    "get_law_school_count": "node -e 'require(\"./index.js\").getGroup(\"law_school\", \"count\")'",
-    "get_license_type_alphabetical": "node -e 'require(\"./index.js\").getGroup(\"license_type\")'",
-    "get_license_type_count": "node -e 'require(\"./index.js\").getGroup(\"license_type\", \"count\")'",
-    "get_status_alphabetical": "node -e 'require(\"./index.js\").getGroup(\"status\")'",
-    "get_status_count": "node -e 'require(\"./index.js\").getGroup(\"status\", \"count\")'",
-    "write_full_members": "node -e 'require(\"./index.js\").writeFullMemberResultsToJson()'"
+    "start": "ts-node src/index.ts",
+    "build": "tsc",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts"
   },
   "author": "Bronson Avila",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.19.2",
-    "cheerio": "^1.0.0-rc.3",
-    "d3": "^5.16.0",
-    "d3-array": "^2.4.0"
+    "axios": "^1.7.3",
+    "cheerio": "^1.0.0-rc.12",
+    "csv-parser": "^3.0.0",
+    "csv-writer": "^1.6.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.1.0",
+    "@types/cheerio": "^0.22.31",
+    "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.0.4"
   }
 }

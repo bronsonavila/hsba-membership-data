@@ -1,8 +1,8 @@
 {
   "arrowParens": "avoid",
   "endOfLine": "lf",
-  "printWidth": 90,
-  "semi": true,
+  "printWidth": 140,
+  "semi": false,
   "singleQuote": true,
   "tabWidth": 2,
   "trailingComma": "es5"
