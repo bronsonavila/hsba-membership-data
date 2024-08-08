@@ -20,6 +20,7 @@ export const getMemberPage = async (id: string): Promise<string> => {
   }
 }
 
+// Google's Geocoding API would technically be a better choice, but OpenAI's `gpt-4o-mini` model is dirt cheap and more fun.
 export const getStateAndCountryFromAddress = async (id: string, address: string): Promise<string> => {
   try {
     const response = await openAi.chat.completions.create({
