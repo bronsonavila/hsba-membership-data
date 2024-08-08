@@ -1,6 +1,6 @@
 import dotenv from 'dotenv'
 import { createObjectCsvWriter } from 'csv-writer'
-import axios, { AxiosResponse } from 'axios'
+import axios from 'axios'
 import cheerio from 'cheerio'
 import csvParser from 'csv-parser'
 import fs from 'fs'
@@ -17,7 +17,7 @@ const FULL_MEMBERS_CSV = `${DATA_DIR}/members-full.csv`
 const LIMITED_MEMBERS_CSV = `${DATA_DIR}/members-limited.csv`
 
 // Corresponds to the order in which fields are npm displayed on the member's page.
-const FIELD_INDEX_MAP: Record<string, number> = {
+const FIELD_INDEX_MAP = {
   name: 0,
   jd_number: 1,
   license_type: 2,
@@ -51,27 +51,13 @@ type FullMemberData = LimitedMemberData & {
   law_school: string
 }
 
-// FUNCTIONS – MAIN
+// MAIN FUNCTION
 
 const writeFullMemberResultsToCsv = async (): Promise<void> => {
   const startTime = Date.now()
 
+  const csvWriter = createCsvWriter()
   const membersLimited = await readCsvFile(LIMITED_MEMBERS_CSV)
-  const csvWriter = createObjectCsvWriter({
-    path: FULL_MEMBERS_CSV,
-    header: [
-      { id: 'id', title: 'id' },
-      { id: 'name', title: 'name' },
-      { id: 'jd_number', title: 'jd_number' },
-      { id: 'license_type', title: 'license_type' },
-      { id: 'employer', title: 'employer' },
-      { id: 'address', title: 'address' },
-      { id: 'email', title: 'email' },
-      { id: 'law_school', title: 'law_school' },
-      { id: 'admitted_hi_bar', title: 'admitted_hi_bar' },
-    ],
-  })
-
   const records: FullMemberData[] = []
 
   for (const [index, member] of membersLimited.entries()) {
@@ -92,63 +78,98 @@ const writeFullMemberResultsToCsv = async (): Promise<void> => {
 
   await csvWriter.writeRecords(records)
 
-  const endTime = Date.now()
-  const duration = endTime - startTime
+  const duration = Date.now() - startTime
 
   console.log(`Task complete. Duration: ${formatDuration(duration)}`)
 }
 
-// FUNCTIONS – HELPERS
+// HELPER FUNCTIONS
+
+const createCsvWriter = () =>
+  createObjectCsvWriter({
+    header: [
+      { id: 'id', title: 'id' },
+      { id: 'name', title: 'name' },
+      { id: 'jd_number', title: 'jd_number' },
+      { id: 'license_type', title: 'license_type' },
+      { id: 'employer', title: 'employer' },
+      { id: 'address', title: 'address' },
+      { id: 'email', title: 'email' },
+      { id: 'law_school', title: 'law_school' },
+      { id: 'admitted_hi_bar', title: 'admitted_hi_bar' },
+    ],
+    path: FULL_MEMBERS_CSV,
+  })
 
 const createMemberRecord = (id: string, fields: string[]): FullMemberData => ({
   id,
-  name: fields[FIELD_INDEX_MAP.name]?.trim() || '',
+  name: extractFirstInitialAndLastName(fields[FIELD_INDEX_MAP.name]),
   jd_number: fields[FIELD_INDEX_MAP.jd_number] || '',
   license_type: fields[FIELD_INDEX_MAP.license_type]?.trim() || '',
   employer: fields[FIELD_INDEX_MAP.employer]?.trim() || '',
   address: formatAddress(fields[FIELD_INDEX_MAP.address]),
   email: extractEmailDomain(fields[FIELD_INDEX_MAP.email]),
   law_school: fields[FIELD_INDEX_MAP.law_school]?.trim() || '',
-  admitted_hi_bar: fields[FIELD_INDEX_MAP.admitted_hi_bar]
-    ? new Date(fields[FIELD_INDEX_MAP.admitted_hi_bar]).getFullYear().toString()
-    : '',
+  admitted_hi_bar: formatAdmittedYear(fields[FIELD_INDEX_MAP.admitted_hi_bar]),
 })
+
+const decodeEmail = (encodedEmail: string): string => {
+  const key = parseInt(encodedEmail.slice(0, 2), 16)
+  let uriComponent = ''
+
+  for (let i = 2; i < encodedEmail.length; i += 2) {
+    const charCode = parseInt(encodedEmail.slice(i, i + 2), 16) ^ key
+
+    uriComponent += String.fromCharCode(charCode)
+  }
+
+  return decodeURIComponent(uriComponent) // Silly Cloudflare… You can't stop me.
+}
 
 const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms))
 
 const extractEmailDomain = (email: string | undefined): string => {
   const domain = email?.split('@')[1]
 
-  return domain ? `${domain.trim().toLowerCase()}` : ''
+  return domain ? domain.trim().toLowerCase() : ''
+}
+
+const extractFirstInitialAndLastName = (fullName: string): string => {
+  const nameWithoutSuffix = fullName.split(',')[0].trim()
+  const nameParts = nameWithoutSuffix.split(/\s+/)
+  const firstNameOrInitial = nameParts[0]
+  const firstInitial = firstNameOrInitial.length > 1 ? `${firstNameOrInitial[0]}.` : firstNameOrInitial
+  const lastName = nameParts[nameParts.length - 1]
+
+  return `${firstInitial} ${lastName}`
 }
 
 const fetchMemberPage = async (memberId: string): Promise<string> => {
-  const response: AxiosResponse<string> = await axios.get<string>(`${HSBA_DIRECTORY_URL}${memberId}`, {
-    headers: { Cookie: process.env.COOKIE || '' },
-  })
+  const response = await axios.get<string>(`${HSBA_DIRECTORY_URL}${memberId}`, { headers: { Cookie: process.env.COOKIE || '' } })
 
   return response.data
 }
 
 const formatAddress = (address: string | undefined): string => {
-  const trimmedAddress = address?.trim()
+  if (!address) return ''
 
-  return trimmedAddress === ',' ? '' : trimmedAddress || ''
+  const formattedAddress = address
+    .replace(/<br\s*[\/]?>/gi, ', ') // Replace `<br>` with comma and space.
+    .replace(/\n/g, '') // Remove newlines.
+    .replace(/  +/g, ' ') // Replace multiple spaces with a single space.
+    .trim()
+
+  return formattedAddress === ',' ? '' : formattedAddress
 }
 
+const formatAdmittedYear = (date: string | undefined): string => (date ? new Date(date).getFullYear().toString() : '')
+
 const formatDuration = (ms: number): string => {
-  let seconds = Math.floor(ms / 1000)
-  let minutes = Math.floor(seconds / 60)
-  let hours = Math.floor(minutes / 60)
+  const seconds = Math.floor(ms / 1000) % 60
+  const minutes = Math.floor(ms / (1000 * 60)) % 60
+  const hours = Math.floor(ms / (1000 * 60 * 60))
 
-  seconds %= 60
-  minutes %= 60
-
-  const formattedHours = hours.toString().padStart(2, '0')
-  const formattedMinutes = minutes.toString().padStart(2, '0')
-  const formattedSeconds = seconds.toString().padStart(2, '0')
-
-  return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`
+  return [hours, minutes, seconds].map(val => val.toString().padStart(2, '0')).join(':')
 }
 
 const logProgress = (index: number, total: number, record: FullMemberData): void => {
@@ -159,19 +180,22 @@ const logProgress = (index: number, total: number, record: FullMemberData): void
 
 const parseMemberHtml = (html: string): string[] => {
   const $ = cheerio.load(html)
-  const fields = $('.PanelFieldValue')
 
-  return fields
+  return $('.PanelFieldValue')
     .map((index, element) => {
       const fieldValue = $(element).find('span')
 
-      return index === FIELD_INDEX_MAP.address
-        ? fieldValue
-            .html()
-            ?.replace(/<br\s*[\/]?>/gi, ', ') // Replace `<br>` with comma and space.
-            .replace(/\n/g, '') // Remove newlines.
-            .replace(/  +/g, ' ') || '' // Replace multiple spaces with a single space.
-        : fieldValue.text()
+      if (index === FIELD_INDEX_MAP.address) {
+        return formatAddress(fieldValue.html() || '')
+      }
+
+      if (index === FIELD_INDEX_MAP.email) {
+        const encodedEmail = fieldValue.find('.__cf_email__').attr('data-cfemail')
+
+        return encodedEmail ? decodeEmail(encodedEmail) : fieldValue.text()
+      }
+
+      return fieldValue.text()
     })
     .get()
 }
