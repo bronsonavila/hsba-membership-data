@@ -20,7 +20,7 @@ const writeMemberDataToCsv = async (): Promise<void> => {
 
       logProgress(index, partialMemberData.length, record)
     } catch (error) {
-      logErrorToFile(new Error(`Error processing member ${member.id}: ${error}`), `Member ID: ${member.id}, Index: ${index}`)
+      logErrorToFile(new Error(`Error processing member ${member.id}: ${error}`), `Index: ${index}`)
     }
 
     await delay(1000)

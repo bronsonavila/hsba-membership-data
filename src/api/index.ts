@@ -14,7 +14,7 @@ export const getMemberPage = async (id: string): Promise<string> => {
 
     return response.data
   } catch (error) {
-    logErrorToFile(new Error(`Error fetching member page for ID ${id}: ${(error as Error).message}`), `Member ID: ${id}`)
+    logErrorToFile(new Error(`Error fetching member page for ID ${id}: ${(error as Error).message}`))
 
     throw error
   }
@@ -71,15 +71,12 @@ export const getStateAndCountryFromAddress = async (id: string, address: string)
     } else if (VALID_COUNTRY_CODES.has(stateOrCountry)) {
       return stateOrCountry
     } else {
-      logErrorToFile(
-        new Error(`Invalid response format from OpenAI for ID ${id}: ${responseContent}`),
-        `Address: ${address}, Response: ${responseContent}`
-      )
+      logErrorToFile(new Error(`Invalid response format from OpenAI for ID ${id}: ${responseContent}`), `Address: ${address}`)
 
       return ''
     }
   } catch (error) {
-    logErrorToFile(new Error(`Error processing ID ${id}: ${(error as Error).message}`), `ID: ${id}, Address: ${address}`)
+    logErrorToFile(new Error(`Error processing ID ${id}: ${(error as Error).message}`), `Address: ${address}`)
 
     return ''
   }
