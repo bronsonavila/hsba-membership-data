@@ -1,37 +1,62 @@
-import { createCsvWriter, readCsvFile } from './helpers/csv'
-import { createMemberRecord, delay, formatDuration, logErrorToFile, logProgress, parseMemberHtml } from './helpers/utilities'
+import { createObjectCsvWriter } from 'csv-writer'
+import {
+  extractEmailDomain,
+  extractYearFromDate,
+  formatDuration,
+  parseMemberPageHtml,
+  readCsvFile,
+  retryOperation,
+  setLocation,
+  setName,
+} from './utils'
 import { getMemberPage } from './api'
-import { MemberDataComplete, MemberDataPartial } from './types/types'
-import { MEMBERS_PARTIAL_CSV } from './constants'
+import { logError, logProgress } from './utils/logging'
+import { MEMBER_IDENTIFIERS_CSV, MEMBER_RECORDS_CSV, MEMBER_RECORDS_CSV_HEADER } from './constants'
+import { MemberRecord, MemberIdentifiers, MemberRecordFieldOrder } from './types'
 
-const writeMemberDataToCsv = async (): Promise<void> => {
+const createMemberRecord = async (id: string, fields: string[]): Promise<MemberRecord> => {
+  const location = await setLocation(fields[MemberRecordFieldOrder.Address], fields[MemberRecordFieldOrder.Country], id)
+  const name = await setName(fields[MemberRecordFieldOrder.Name], id)
+
+  return {
+    id,
+    jdNumber: fields[MemberRecordFieldOrder.JdNumber],
+    name,
+    licenseType: fields[MemberRecordFieldOrder.LicenseType],
+    employer: fields[MemberRecordFieldOrder.Employer],
+    location,
+    emailDomain: extractEmailDomain(fields[MemberRecordFieldOrder.Email]),
+    lawSchool: fields[MemberRecordFieldOrder.LawSchool],
+    barAdmissionYear: extractYearFromDate(fields[MemberRecordFieldOrder.AdmittedHiBar]),
+  }
+}
+
+const writeMemberRecordsToCsv = async (): Promise<void> => {
   const startTime = Date.now()
 
-  const completeMemberData: MemberDataComplete[] = []
-  const partialMemberData = await readCsvFile<MemberDataPartial>(MEMBERS_PARTIAL_CSV)
+  const memberIdentifiers = await readCsvFile<MemberIdentifiers>(MEMBER_IDENTIFIERS_CSV)
+  const memberRecords: MemberRecord[] = []
 
-  for (const [index, member] of partialMemberData.entries()) {
+  for (const [index, member] of memberIdentifiers.entries()) {
     try {
-      const html = await getMemberPage(member.id)
-      const fields = parseMemberHtml(html)
-      const record = await createMemberRecord(member.id, fields)
+      const html = await retryOperation(() => getMemberPage(member.id))
+      const fields = parseMemberPageHtml(html)
+      const memberRecord = await createMemberRecord(member.id, fields)
 
-      completeMemberData.push(record)
+      memberRecords.push(memberRecord)
 
-      logProgress(index, partialMemberData.length, record)
+      logProgress(index, memberIdentifiers.length, memberRecord)
     } catch (error) {
-      logErrorToFile(new Error(`Error processing member ${member.id}: ${error}`), `Index: ${index}`)
+      logError(new Error(`Error processing member: ${error}`), `ID: ${member.id}, Index: ${index}`)
     }
-
-    await delay(1000)
   }
 
-  const csvWriter = createCsvWriter()
-  await csvWriter.writeRecords(completeMemberData)
+  const csvWriter = createObjectCsvWriter({ header: MEMBER_RECORDS_CSV_HEADER, path: MEMBER_RECORDS_CSV })
+  await csvWriter.writeRecords(memberRecords)
 
   const duration = Date.now() - startTime
 
   console.log(`Task complete. Duration: ${formatDuration(duration)}`)
 }
 
-writeMemberDataToCsv()
+writeMemberRecordsToCsv()
