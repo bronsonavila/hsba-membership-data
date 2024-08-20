@@ -50,6 +50,10 @@ This executes the following steps:
 
 Steps 1 and 2 are skipped if the files already exist.
 
+## Cost
+
+Each run of this application will incur approximately $1.66 in OpenAI API costs, based on the [current pricing for the GPT-4o mini non-batch usage](https://openai.com/api/pricing/).
+
 ## Output
 
 Generated CSV files:
