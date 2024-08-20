@@ -1,19 +1,4 @@
-export interface MemberIdentifiers {
-  id: string
-  jdNumber: string
-}
-
-export interface MemberRecord extends MemberIdentifiers {
-  barAdmissionYear: string
-  emailDomain: string
-  employer: string
-  lawSchool: string
-  licenseType: string
-  location: string
-  name: string
-}
-
-// Values represent the order in which fields are displayed on each member's page.
+// Listed in the order they appear on a member's page.
 export enum MemberRecordFieldOrder {
   Name,
   JdNumber,
@@ -27,4 +12,33 @@ export enum MemberRecordFieldOrder {
   LawSchool,
   Graduated,
   AdmittedHiBar,
+}
+
+export interface MemberIdentifier {
+  id: string
+  jdNumber: string
+}
+
+export interface ProcessedMemberRecord extends MemberIdentifier {
+  barAdmissionYear: string
+  emailDomain: string
+  employer: string
+  lawSchool: string
+  licenseType: string
+  location: string
+  name: string
+}
+
+export interface RawMemberRecord extends MemberIdentifier {
+  address: string
+  admittedHiBar: string
+  country: string
+  email: string
+  employer: string
+  fax: string
+  graduated: string
+  lawSchool: string
+  licenseType: string
+  name: string
+  phone: string
 }

@@ -1,6 +1,6 @@
 # HSBA Membership Data
 
-This is a Node.js application designed to process membership data from the Hawaii State Bar Association's [Membership Directory](https://hsba.org/HSBA/Membership_Directory.aspx). The application scrapes member information, formats it, and saves the data to a CSV file.
+This is a Node.js application designed to process membership data from the Hawaii State Bar Association's [Membership Directory](https://hsba.org/HSBA/Membership_Directory.aspx). The application scrapes member information, formats it, and saves the data to CSV files.
 
 ## Requirements
 
@@ -31,11 +31,8 @@ This is a Node.js application designed to process membership data from the Hawai
    ```
 
 2. Edit the `.env` file and set the necessary environment variables:
-
    - `IS_PUPPETEER_HEADLESS`: Set to `false` to run Puppeteer in non-headless mode for debugging.
    - `OPEN_AI_API_KEY`: Your API key from the [OpenAI developer platform](https://platform.openai.com/docs/overview).
-
-3. Navigate to `functions/index.js` and follow the instructions provided to create the `data/member-identifiers.csv` file.
 
 ## Usage
 
@@ -45,4 +42,22 @@ To run the application and process the data:
 npm start
 ```
 
-This command initiates the scraping process. Results are written to `data/member-records.csv`. Errors are logged in `logs/errors.log`.
+This executes the following steps:
+
+1. Creates `data/member-identifiers.csv` if it does not exist.
+2. Scrapes raw member records into `data/raw-member-records.csv` if not already present.
+3. Processes raw data into `data/processed-member-records.csv`.
+
+Steps 1 and 2 are skipped if the files already exist.
+
+## Output
+
+Generated CSV files:
+
+- `member-identifiers.csv`: Member IDs and JD numbers.
+- `raw-member-records.csv`: Raw scraped member data.
+- `processed-member-records.csv`: Formatted member data.
+
+## Error Handling
+
+Errors are logged in `logs/errors.log`.

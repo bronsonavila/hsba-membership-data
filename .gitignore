@@ -1,5 +1,6 @@
 .DS_Store
 .env
+data/raw-member-records.csv
 ignore
 logs
 node_modules

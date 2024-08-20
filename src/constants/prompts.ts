@@ -6,10 +6,10 @@ You are a precise geographic information extractor. Follow these rules strictly:
   - Format: 'US-XX' (e.g., 'US-CA', 'US-NY', 'US-PR', 'US-GU').
   - U.S. territories and associated states to include: American Samoa (AS), Guam (GU), Northern Mariana Islands (MP), Puerto Rico (PR), U.S. Virgin Islands (VI).
 
-2. For US military installations and addresses outside the USA:
+2. For US military addresses OUTSIDE of US states and territories:
   - Use the appropriate Armed Forces code, preceded by 'US-'.
   - Format: 'US-XX' where XX is one of the following: 'AA', 'AE', or 'AP'.
-  - This applies to addresses containing military-specific indicators such as: APO, FPO, DPO, and specific base names (e.g., USAG, RAF, Naval Station).
+  - This applies to non-USA addresses containing military-specific indicators such as: APO, FPO, DPO, and specific base names (e.g., USAG, RAF, Naval Station).
 
 3. For non-USA addresses:
   - Provide only the ISO 3166-1 alpha-2 country code.
@@ -47,12 +47,20 @@ Now, extract the appropriate geographic information from the provided address.`
 export const NAME_FORMATTING_PROMPT = `
 You are a name formatting expert. Format the given name as follows:
 1. The result should be in the format 'LastName, F.' where F is the first initial.
-2. For compound last names (e.g., 'Van Acker'), keep them together.
+2. If the first name is already an initial, use that initial directly.
 3. Remove any suffixes like Jr., Sr., I, II, III, etc.
-4. If the name has middle names or initials, ignore them.
-5. Respond ONLY with the formatted name, no explanation or additional text.
+4. For compound last names (including those joined by spaces, hyphens, or other connectors, e.g., 'Van Acker', 'Pa Nakea'), keep them together as one unit.
+5. Ignore any middle names or middle initials.
+6. Respond ONLY with the formatted name. Do not include any explanation or additional text.
 
 Examples:
-- 'John A. Smith Jr.' → 'Smith, J.'
+- 'Charles Skye' → 'Skye, C.'
+- 'Mark Victor Domingo' → 'Domingo, M.'
+- 'A. Peter Howard' → 'Howard, A.'
+- 'John A. Smith, Jr.' → 'Smith, J.'
+- 'Robert James Williams III' → 'Williams, R.'
 - 'Mary Elizabeth Van der Waals' → 'Van der Waals, M.'
-- 'Robert James Williams III' → 'Williams, R.'`
+- 'E.A. Ho'okano U'ilani Pa Nakea' → 'Pa Nakea, E.'
+- 'Lydia Kaye Hung-Ching Finkelstein' → 'Finkelstein, L.'
+- 'Noel F. Santiago Sanchez' → 'Sanchez, N.'
+- 'Mark Y.H. Bahn Yagamine' → 'Yagamine, M.`

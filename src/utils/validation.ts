@@ -1,4 +1,4 @@
-import { INVALID_ADDRESSES, VALID_COUNTRY_CODES, VALID_US_STATES_AND_TERRITORIES } from '../../constants/validation'
+import { INVALID_ADDRESSES, VALID_COUNTRY_CODES, VALID_US_STATES_AND_TERRITORIES } from '../constants/validation'
 
 export const isAddressFormatValid = (fullAddress: string): boolean => Boolean(fullAddress && !INVALID_ADDRESSES.has(fullAddress))
 
