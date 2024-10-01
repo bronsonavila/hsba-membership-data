@@ -18,7 +18,7 @@ export const PROCESSED_MEMBER_RECORDS_HEADER = [
   { id: 'location', title: 'location' },
   { id: 'emailDomain', title: 'emailDomain' },
   { id: 'lawSchool', title: 'lawSchool' },
-  { id: 'barAdmissionYear', title: 'barAdmissionYear' },
+  { id: 'barAdmissionDate', title: 'barAdmissionDate' },
 ]
 
 export const PROCESSED_MEMBER_RECORDS_PATH = path.join(DATA_DIR, 'processed-member-records.csv')

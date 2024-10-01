@@ -21,3 +21,5 @@ export const retryOperation = async <T>(operation: () => Promise<T>, retries: nu
     throw error
   }
 }
+
+export const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms))
