@@ -1,3 +1,19 @@
+interface AddressComponent {
+  long_name: string
+  short_name: string
+  types: string[]
+}
+
+export interface GeocodeResponse {
+  results: GeocodeResult[]
+  status: string
+}
+
+export interface GeocodeResult {
+  address_components: AddressComponent[]
+  types: string[]
+}
+
 // Listed in the order they appear on a member's page.
 export enum MemberRecordFieldOrder {
   Name,
@@ -20,7 +36,7 @@ export interface MemberIdentifier {
 }
 
 export interface ProcessedMemberRecord extends MemberIdentifier {
-  barAdmissionYear: string
+  barAdmissionDate: string
   emailDomain: string
   employer: string
   lawSchool: string

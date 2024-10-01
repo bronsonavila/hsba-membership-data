@@ -6,7 +6,7 @@ This is a Node.js application designed to process membership data from the Hawai
 
 - Node.js (version specified in `.nvmrc`)
 - Yarn package manager
-- A valid OpenAI API key for accessing the OpenAI platform
+- A valid Google Geocoding API key
 
 ## Installation
 
@@ -31,8 +31,8 @@ This is a Node.js application designed to process membership data from the Hawai
    ```
 
 2. Edit the `.env` file and set the necessary environment variables:
+   - `GOOGLE_GEOCODING_API_KEY`: Your API key from the [Google Cloud Console](https://console.cloud.google.com/).
    - `IS_PUPPETEER_HEADLESS`: Set to `false` to run Puppeteer in non-headless mode for debugging.
-   - `OPEN_AI_API_KEY`: Your API key from the [OpenAI developer platform](https://platform.openai.com/docs/overview).
 
 ## Usage
 
@@ -47,12 +47,6 @@ This executes the following steps:
 1. Creates `data/member-identifiers.csv` if it does not exist.
 2. Scrapes raw member records into `data/raw-member-records.csv` if not already present.
 3. Processes raw data into `data/processed-member-records.csv`.
-
-Steps 1 and 2 are skipped if the files already exist.
-
-## Cost
-
-Each run of this application will incur approximately $1.66 in OpenAI API costs, based on the [current pricing for the GPT-4o mini non-batch usage](https://openai.com/api/pricing/).
 
 ## Output
 

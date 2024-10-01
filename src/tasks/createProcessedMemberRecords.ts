@@ -1,5 +1,5 @@
-import { extractEmailDomain, extractYearFromDate, formatDuration } from '../utils/formatting'
-import { getFormattedName, getLocation } from '../api'
+import { extractEmailDomain, formatDuration, formatLawSchool } from '../utils/formatting'
+import { getAddressComponents } from '../api'
 import { logError, logProgress } from '../utils/logging'
 import { PROCESSED_MEMBER_RECORDS_HEADER, PROCESSED_MEMBER_RECORDS_PATH, RAW_MEMBER_RECORDS_PATH } from '../constants/csv'
 import { ProcessedMemberRecord, RawMemberRecord } from '../types'
@@ -33,18 +33,17 @@ export const createProcessedMemberRecords = async (): Promise<void> => {
 
 const processMemberRecord = async (rawRecord: RawMemberRecord): Promise<ProcessedMemberRecord> => {
   const { address, admittedHiBar, country, email, employer, id, jdNumber, lawSchool, licenseType, name } = rawRecord
-  const location = await getLocation(address, country, id)
-  const formattedName = await getFormattedName(name, id)
+  const location = await getAddressComponents(address, country, id)
 
   return {
-    id: id,
-    jdNumber: jdNumber,
-    name: formattedName,
-    licenseType: licenseType,
-    employer: employer,
+    id,
+    jdNumber,
+    name,
+    licenseType,
+    employer,
     location,
     emailDomain: extractEmailDomain(email),
-    lawSchool: lawSchool,
-    barAdmissionYear: extractYearFromDate(admittedHiBar),
+    lawSchool: formatLawSchool(lawSchool),
+    barAdmissionDate: admittedHiBar,
   }
 }
